@@ -1,0 +1,31 @@
+[package]
+name = "truthsocial-wbm-cli"
+description = "CLI for Truth Social data processing"
+authors.workspace = true
+repository.workspace = true
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "truthsocial-wbm"
+path = "src/main.rs"
+
+[dependencies]
+archivindex-wbm.workspace = true
+archivindex-wbm-cdx-index.workspace = true
+archivindex-wbm-json.workspace = true
+archivindex-wbm-json-gzip.workspace = true
+archivindex-wbm-json-processing.workspace = true
+truthsocial = { path = "../core" }
+truthsocial-wbm = { path = "../wbm" }
+clap.workspace = true
+cli-helpers = "0.1"
+csv = "1"
+rand.workspace = true
+regex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+zstd = "0.13"

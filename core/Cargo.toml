@@ -1,0 +1,24 @@
+[package]
+name = "truthsocial"
+description = "Core types for Truth Social API"
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+keywords.workspace = true
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+readme.workspace = true
+# Fixtures under `tests/` bundle real captured API responses; they are not needed to build or use the
+# crate, so keep them out of the published tarball.
+exclude = ["tests/"]
+
+[dependencies]
+chrono.workspace = true
+either.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde-field-attributes.workspace = true
+
+[dev-dependencies]
+flate2.workspace = true

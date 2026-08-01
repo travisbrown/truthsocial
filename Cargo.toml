@@ -1,0 +1,47 @@
+[workspace]
+resolver = "2"
+members = ["api", "api-cli", "core", "wbm", "wbm-cli"]
+# `api-cli` pulls in `chromiumoxide` (a heavy, browser-driving dependency), so it is excluded from
+# the default set. Build it explicitly with `-p truthsocial-api-cli`.
+default-members = ["api", "core", "wbm", "wbm-cli"]
+
+[workspace.package]
+authors = ["Travis Brown <travisrobertbrown@gmail.com>"]
+homepage = "https://github.com/travisbrown/truthsocial"
+repository = "https://github.com/travisbrown/truthsocial"
+keywords = ["truthsocial", "mastodon"]
+edition = "2024"
+license = "AGPL-3.0-only"
+version = "0.1.0"
+readme = "README.md"
+
+[workspace.dependencies]
+archivindex-wbm = { git = "https://github.com/travisbrown/archivindex.git" }
+archivindex-wbm-cdx-index = { git = "https://github.com/travisbrown/archivindex.git" }
+archivindex-wbm-json = { git = "https://github.com/travisbrown/archivindex.git" }
+archivindex-wbm-json-gzip = { git = "https://github.com/travisbrown/archivindex.git" }
+archivindex-wbm-json-processing = { git = "https://github.com/travisbrown/archivindex.git" }
+clap = { version = "4", features = ["derive"] }
+bounded-static = "0.8"
+bounded-static-derive-more = "0.1"
+chrono = { version = "0.4", features = ["serde"] }
+either = { version = "1", features = ["serde"] }
+flate2 = "1"
+log = "0.4"
+num-rational = "0.4"
+quickcheck = "1"
+rand = "0.10"
+regex = "1"
+reqwest = "0.13"
+serde = { version = "1", features = ["derive"] }
+serde-field-attributes = "0.7"
+serde_json = { version = "1", features = ["preserve_order"] }
+sha1 = "0.11"
+sha2 = "0.10"
+tempfile = "3"
+thiserror = "2"
+tokio = "1"
+toml = "1"
+url = { version = "2", features = ["serde"] }
+wiremock = "0.6"
+zstd = "0.13"

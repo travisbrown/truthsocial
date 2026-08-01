@@ -1,0 +1,26 @@
+[package]
+name = "truthsocial-api-cli"
+description = "Command-line utilities for the Truth Social API client (browser-assisted login)"
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+keywords.workspace = true
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+publish = false
+
+[[bin]]
+name = "truthsocial-api"
+path = "src/main.rs"
+
+[dependencies]
+truthsocial-api = { path = "../api" }
+clap.workspace = true
+cli-helpers = "0.1"
+serde_json.workspace = true
+thiserror.workspace = true
+# Drives a headed Chromium so the user can log in / clear Cloudflare (the `setup` command).
+chromiumoxide = "0.9"
+futures = "0.3"
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
