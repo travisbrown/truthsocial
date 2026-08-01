@@ -1,0 +1,44 @@
+[package]
+name = "truthsocial-wbm-cli"
+description = "Command-line tools for Truth Social Wayback Machine archives"
+authors.workspace = true
+repository.workspace = true
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "truthsocial-wbm"
+path = "src/main.rs"
+# Avoid a rustdoc output-filename collision with the `truthsocial-wbm` library crate.
+doc = false
+
+[dependencies]
+archivindex-cli-support.workspace = true
+archivindex-wbm.workspace = true
+archivindex-wbm-cdx-index.workspace = true
+archivindex-wbm-json.workspace = true
+archivindex-wbm-json-gzip.workspace = true
+archivindex-wbm-json-processing.workspace = true
+truthsocial.workspace = true
+truthsocial-wbm.workspace = true
+clap.workspace = true
+csv.workspace = true
+log.workspace = true
+rand.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+zstd.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+# The final binary chooses bundled SQLite on Windows, where no system import library is available.
+rusqlite = { workspace = true, features = ["bundled-windows"] }
+
+[dev-dependencies]
+tempfile.workspace = true

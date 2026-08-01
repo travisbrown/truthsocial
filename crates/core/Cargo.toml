@@ -1,0 +1,33 @@
+[package]
+name = "truthsocial"
+description = "Core types for the Truth Social API"
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+keywords.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+version.workspace = true
+readme.workspace = true
+# Keep test fixtures out of the published package.
+exclude = ["tests/"]
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+chrono.workspace = true
+either.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde-field-attributes.workspace = true
+thiserror.workspace = true
+url.workspace = true
+
+[dev-dependencies]
+flate2.workspace = true

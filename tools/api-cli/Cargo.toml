@@ -1,0 +1,31 @@
+[package]
+name = "truthsocial-api-cli"
+description = "Command-line utilities for the Truth Social API client (browser-assisted login)"
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+keywords.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+version.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "truthsocial-api"
+path = "src/main.rs"
+# Avoid a rustdoc output-filename collision with the `truthsocial-api` library crate.
+doc = false
+
+[dependencies]
+archivindex-cli-support.workspace = true
+truthsocial-api.workspace = true
+clap.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+chromiumoxide.workspace = true
+futures.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

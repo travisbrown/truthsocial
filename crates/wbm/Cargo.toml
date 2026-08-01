@@ -1,0 +1,45 @@
+[package]
+name = "truthsocial-wbm"
+description = "Wayback Machine (WTJ) archive snapshot integration for Truth Social types"
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+keywords.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+version.workspace = true
+readme.workspace = true
+# Fixtures under `tests/` bundle real captured API responses; they are not needed to build or use
+# the crate, so keep them out of the published tarball.
+exclude = ["tests/"]
+
+[lints]
+workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+archivindex-wbm.workspace = true
+archivindex-wbm-json.workspace = true
+archivindex-wbm-json-gzip.workspace = true
+bounded-static.workspace = true
+either.workspace = true
+log.workspace = true
+truthsocial.workspace = true
+serde_json.workspace = true
+sha1.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+zstd.workspace = true
+
+[dev-dependencies]
+archivindex-wbm-test-data.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[target.'cfg(windows)'.dev-dependencies]
+# Compile SQLite for the library tests on Windows.
+rusqlite = { workspace = true, features = ["bundled-windows"] }
