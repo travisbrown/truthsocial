@@ -48,8 +48,9 @@ pub struct Status<'a> {
     /// Content warning text, if any.
     pub spoiler_text: Cow<'a, str>,
 
-    /// Visibility level of this status.
-    pub visibility: Visibility,
+    /// Visibility level of this status, or `None` when the capture omits it. Older records
+    /// (and some Wayback Machine snapshots) serialize `visibility` as `null`.
+    pub visibility: Option<Visibility>,
 
     /// ISO 639-1 language code, if detected.
     pub language: Option<Cow<'a, str>>,
@@ -1191,7 +1192,7 @@ mod tests {
         let status: Status<'_> = serde_json::from_str(&json).expect("Failed to deserialize status");
 
         assert_eq!(status.id, 107962811324118694);
-        assert_eq!(status.visibility, Visibility::Public);
+        assert_eq!(status.visibility, Some(Visibility::Public));
         assert_eq!(status.account.username, "DineshDSouza");
 
         let reblog = status.reblog.as_ref().expect("Expected reblog");
@@ -1270,6 +1271,23 @@ mod tests {
         );
     }
 
+    /// A status whose `visibility` is JSON `null` must deserialize to `None`, not fail. Some older
+    /// captures (and Wayback Machine snapshots) serialize the field this way; the field is required
+    /// on the live API but optional in the archive.
+    #[test]
+    fn status_accepts_null_visibility() {
+        let json = decode_snapshot(include_bytes!(
+            "../../tests/data/wbm/snapshots/AAA7WWHWJB6AP4HLEMQBVJQP6QSDQV4Q"
+        ));
+        let mut value: serde_json::Value = serde_json::from_str(&json).expect("snapshot JSON");
+        // Force the top-level visibility to null, mirroring the real captures that triggered this.
+        value["visibility"] = serde_json::Value::Null;
+
+        let status: Status<'_> =
+            serde_json::from_value(value).expect("a null visibility must deserialize, not error");
+        assert_eq!(status.visibility, None);
+    }
+
     /// A status whose account carries the `pleroma` extension and whose media is a video
     /// backed by a `CardType::Video` link card (older capture: no blurhash, no processing).
     #[test]
@@ -1315,7 +1333,7 @@ mod tests {
         let quote = status.quote.as_ref().expect("Expected quote");
         assert_eq!(quote.id, 110374797872162426);
         assert_eq!(quote.account.username, "DevinNunes");
-        assert_eq!(quote.visibility, Visibility::Public);
+        assert_eq!(quote.visibility, Some(Visibility::Public));
 
         let card = quote.card.as_ref().expect("Expected card on quote");
         assert_eq!(card.card_type, CardType::Video);
@@ -1402,7 +1420,7 @@ mod tests {
 
         assert_eq!(status.id, 110941119092973173);
         assert_eq!(status.account.username, "epochtimes");
-        assert_eq!(status.visibility, Visibility::Unlisted);
+        assert_eq!(status.visibility, Some(Visibility::Unlisted));
         assert_eq!(status.sponsored, Some(true));
 
         let metrics = status.metrics.as_ref().expect("Expected metrics");
@@ -1421,7 +1439,7 @@ mod tests {
 
         assert_eq!(status.id, 110617267048515904);
         assert_eq!(status.account.username, "elenochle");
-        assert_eq!(status.visibility, Visibility::Group);
+        assert_eq!(status.visibility, Some(Visibility::Group));
 
         let group = status.group.as_ref().expect("Expected group");
         assert_eq!(group.id, 110353664589615240);
@@ -1483,7 +1501,7 @@ mod tests {
             .as_ref()
             .expect("Expected nested in_reply_to");
         assert_eq!(reply2.id, 115396458435977605);
-        assert_eq!(reply2.visibility, Visibility::Public);
+        assert_eq!(reply2.visibility, Some(Visibility::Public));
     }
 
     /// A status with many mentions (each an account reference) and an image attachment.
