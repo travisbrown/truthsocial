@@ -21,6 +21,7 @@ archivindex-wbm-cdx-index = { git = "https://github.com/travisbrown/archivindex.
 archivindex-wbm-json = { git = "https://github.com/travisbrown/archivindex.git" }
 archivindex-wbm-json-gzip = { git = "https://github.com/travisbrown/archivindex.git" }
 archivindex-wbm-json-processing = { git = "https://github.com/travisbrown/archivindex.git" }
+archivindex-wbm-test-data = { git = "https://github.com/travisbrown/archivindex.git" }
 clap = { version = "4", features = ["derive"] }
 bounded-static = "0.8"
 bounded-static-derive-more = "0.1"

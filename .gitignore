@@ -1,6 +1,7 @@
 Cargo.lock
 target/
 tmp/
+.cache/
 creds.toml
 login-profile/
 .RData
