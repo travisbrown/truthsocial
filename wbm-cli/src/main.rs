@@ -350,8 +350,10 @@ fn validate_content(path: impl AsRef<Path>) -> Result<ContentValidationSummary, 
 
 /// Validates a single file by reading and deserializing it as a status.
 ///
-/// The file may be raw status JSON or a gzip archive of it (detected by the gzip magic and
-/// decompressed); either way the content is parsed with the core [`StatusContent`] schema (a single
+/// The file may be raw status JSON or a gzip archive of it (detected by the gzip magic). A gzip
+/// capture is accepted only when the archivindex codec can reproduce it byte-for-byte: `flate2`
+/// alone decodes archives whose parameters the codec cannot infer, which would let an unverifiable
+/// capture pass. Either way the content is parsed with the core [`StatusContent`] schema (a single
 /// status or an array of them).
 fn validate_single_file(path: impl AsRef<Path>, verify: bool) -> Result<(), FileError> {
     let path = path.as_ref();
@@ -373,6 +375,10 @@ fn validate_single_file(path: impl AsRef<Path>, verify: bool) -> Result<(), File
     }
 
     let content = if bytes.starts_with(&[0x1f, 0x8b]) {
+        // Require that the archivindex codec can reproduce the archive: a successful inference
+        // guarantees an exact byte-for-byte round-trip, so the decoded content is verifiable and
+        // not merely whatever `flate2` happens to inflate from a capture the codec cannot model.
+        GzipParams::infer(&bytes).ok_or(FileError::Irreproducible)?;
         archivindex_wbm_json_gzip::decompress(&bytes).ok_or(FileError::Decode)?
     } else {
         String::from_utf8(bytes).map_err(|_| FileError::Decode)?
@@ -631,6 +637,8 @@ pub enum FileError {
     Read(#[source] std::io::Error),
     #[error("could not decode as UTF-8 text or a gzip archive")]
     Decode,
+    #[error("gzip archive cannot be reproduced by the codec, so it is not a verifiable capture")]
+    Irreproducible,
     #[error("parse error: {0}")]
     Parse(#[source] serde_json::Error),
     #[error("filename is not a valid Base32 SHA-1 digest, cannot verify")]

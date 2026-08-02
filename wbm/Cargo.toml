@@ -29,6 +29,5 @@ zstd.workspace = true
 
 [dev-dependencies]
 archivindex-wbm-test-data.workspace = true
-flate2.workspace = true
 tempfile.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

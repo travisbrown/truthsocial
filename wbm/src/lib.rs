@@ -334,14 +334,14 @@ mod tests {
 
     /// Decodes a curated snapshot payload to its JSON text, transparently gunzipping when the gzip
     /// magic bytes are present.
+    ///
+    /// Decoding routes through the archivindex gzip codec rather than `flate2` directly; the
+    /// corpus's byte-for-byte reproducibility is guarded separately by
+    /// [`validation_context_reproduces_gzip_snapshots`].
     fn decode_snapshot(bytes: &[u8]) -> String {
-        use std::io::Read as _;
         if bytes.starts_with(&[0x1f, 0x8b]) {
-            let mut text = String::new();
-            flate2::read::GzDecoder::new(bytes)
-                .read_to_string(&mut text)
-                .expect("gzip snapshot decompresses to text");
-            text
+            archivindex_wbm_json_gzip::decompress(bytes)
+                .expect("gzip snapshot decompresses to text")
         } else {
             String::from_utf8(bytes.to_vec()).expect("snapshot is UTF-8 JSON")
         }
