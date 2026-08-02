@@ -30,8 +30,8 @@ fn main() -> Result<(), Error> {
     opts.verbose.init_logging()?;
 
     match opts.command {
-        Command::ValidateFiles { path } => {
-            validate_statuses(&path)?;
+        Command::ValidateFiles { path, verify } => {
+            validate_statuses(&path, verify)?;
         }
         Command::Missing {
             cdx,
@@ -185,8 +185,10 @@ fn main() -> Result<(), Error> {
 /// Reads all files in a directory and attempts to deserialize them as status objects.
 ///
 /// Prints errors for each file that fails to parse, then prints a summary of successful vs
-/// unsuccessful parse counts.
-fn validate_statuses(path: impl AsRef<Path>) -> Result<(), Error> {
+/// unsuccessful parse counts. When `verify` is set, each file's raw bytes are additionally checked
+/// against its digest-named filename before parsing; a mismatch (or a filename that is not a valid
+/// digest) counts as a failure.
+fn validate_statuses(path: impl AsRef<Path>, verify: bool) -> Result<(), Error> {
     let path = path.as_ref();
     let mut success_count: u64 = 0;
     let mut error_count: u64 = 0;
@@ -222,7 +224,7 @@ fn validate_statuses(path: impl AsRef<Path>) -> Result<(), Error> {
             continue;
         }
 
-        match validate_single_file(&file_path) {
+        match validate_single_file(&file_path, verify) {
             Ok(()) => {
                 success_count += 1;
             }
@@ -237,7 +239,11 @@ fn validate_statuses(path: impl AsRef<Path>) -> Result<(), Error> {
         }
     }
 
-    log::info!("Parsed {success_count} files successfully, {error_count} failed");
+    if verify {
+        log::info!("Verified and parsed {success_count} files, {error_count} failed");
+    } else {
+        log::info!("Parsed {success_count} files successfully, {error_count} failed");
+    }
 
     Ok(())
 }
@@ -347,8 +353,24 @@ fn validate_content(path: impl AsRef<Path>) -> Result<ContentValidationSummary, 
 /// The file may be raw status JSON or a gzip archive of it (detected by the gzip magic and
 /// decompressed); either way the content is parsed with the core [`StatusContent`] schema (a single
 /// status or an array of them).
-fn validate_single_file(path: impl AsRef<Path>) -> Result<(), FileError> {
-    let bytes = fs::read(path.as_ref()).map_err(FileError::Read)?;
+fn validate_single_file(path: impl AsRef<Path>, verify: bool) -> Result<(), FileError> {
+    let path = path.as_ref();
+    let bytes = fs::read(path).map_err(FileError::Read)?;
+
+    if verify {
+        // The file is the archived byte stream; its digest is the SHA-1 of these raw bytes (never
+        // of the decoded content, which for a gzip capture would differ), Base32-encoded, which is
+        // exactly the filename. So the check needs no decoding.
+        let expected = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .and_then(|name| name.parse::<Sha1Digest>().ok())
+            .ok_or(FileError::UnverifiableName)?;
+        let actual = Sha1Digest::compute(&bytes);
+        if actual != expected {
+            return Err(FileError::DigestMismatch { expected, actual });
+        }
+    }
 
     let content = if bytes.starts_with(&[0x1f, 0x8b]) {
         archivindex_wbm_json_gzip::decompress(&bytes).ok_or(FileError::Decode)?
@@ -611,6 +633,13 @@ pub enum FileError {
     Decode,
     #[error("parse error: {0}")]
     Parse(#[source] serde_json::Error),
+    #[error("filename is not a valid Base32 SHA-1 digest, cannot verify")]
+    UnverifiableName,
+    #[error("digest mismatch: filename is {expected}, content hashes to {actual}")]
+    DigestMismatch {
+        expected: Sha1Digest,
+        actual: Sha1Digest,
+    },
 }
 
 impl FileError {
@@ -636,6 +665,10 @@ enum Command {
     ValidateFiles {
         /// Path to directory containing status JSON files
         path: PathBuf,
+        /// Also verify each file's raw bytes against its digest-named filename (the Base32 SHA-1
+        /// of those bytes). Files whose name is not a valid digest are reported as failures.
+        #[clap(long)]
+        verify: bool,
     },
     /// Print (as CSV) CDX entries whose status ID and digest are both absent from a compact file
     Missing {
