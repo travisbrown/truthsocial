@@ -526,8 +526,9 @@ pub struct MediaAttachment<'a> {
     /// URL for text representation, if any.
     pub text_url: Option<Cow<'a, str>>,
 
-    /// Metadata about the media dimensions and processing.
-    pub meta: MediaMeta<'a>,
+    /// Metadata about the media dimensions and processing, or `None` when the attachment carries
+    /// none (as an `unknown` or not-yet-processed attachment can).
+    pub meta: Option<MediaMeta<'a>>,
 
     /// Alt text description.
     pub description: Option<Cow<'a, str>>,
@@ -546,6 +547,8 @@ pub struct MediaAttachment<'a> {
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum MediaType {
+    /// Unsupported or unrecognized file type.
+    Unknown,
     /// Static image.
     Image,
     /// Animated GIF.
@@ -1230,7 +1233,7 @@ mod tests {
         assert_eq!(attachment.processing, Some(ProcessingStatus::Complete));
         assert!(attachment.blurhash.is_some());
 
-        let meta = &attachment.meta;
+        let meta = attachment.meta.as_ref().expect("Expected media metadata");
         let original = meta.original.as_ref().expect("Expected original metadata");
         assert_eq!(original.bitrate, Some(4323756));
         assert!(original.duration.is_some());
@@ -1306,7 +1309,7 @@ mod tests {
         assert_eq!(attachment.media_type, MediaType::Video);
         assert!(attachment.blurhash.is_none());
 
-        let meta = &attachment.meta;
+        let meta = attachment.meta.as_ref().expect("Expected media metadata");
         let original = meta.original.as_ref().expect("Expected original metadata");
         assert_eq!(original.bitrate, Some(1276287));
         assert!(original.duration.is_some());
